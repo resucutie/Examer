@@ -7,7 +7,7 @@ import { getUserAnswers } from "./handlers/answers";
 import { terminal as term, TextTable, Element } from "terminal-kit"
 import { Range } from "./types"
 
-const userbaseData = path.join(__dirname, "data")
+const userbaseData = path.join(__dirname, "example")
 const examPath = path.join(userbaseData, "exam.json")
 const getExamContents = async () =>
     JSON.parse(await fs.readFile(examPath, "utf8")) as unknown as Questionnaire
