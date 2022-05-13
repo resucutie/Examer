@@ -1,0 +1,27 @@
+[
+    {
+        "statement": "Write the expression of log₂32 = 5 in exponential form",
+        "influence": {
+            "Logarithm": 0.4,
+            "Exponential": 0.4,
+            "Basic Math": 0.2
+        },
+        "answer": ["2^5=32", "2⁵=32", "2^5 = 32", "2⁵ = 32"]
+    },
+    {
+        "statement": "Find the square root of 5929",
+        "influence": {
+            "Square Root": 0.9,
+            "Basic Math": 0.1
+        },
+        "answer": "77"
+    },
+    {
+        "statement": "Calculate the volume of the cylinder with radius 5 and height 6",
+        "influence": {
+            "Cylinder": 0.7,
+            "Basic Math": 0.3
+        },
+        "answer": ["150pi", "150π", "150*pi", "150 * pi"]
+    }
+]
