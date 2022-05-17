@@ -17,11 +17,20 @@
         "answer": "77"
     },
     {
-        "statement": "Calculate the volume of the cylinder with radius 5 and height 6",
+        "statement": "Calculate the volume of the cylinder with radius 5 and height 6 while considering π = 3.1. Do not put the units in the answer.",
         "influence": {
             "Cylinder": 0.7,
             "Basic Math": 0.3
         },
-        "answer": ["150pi", "150π", "150*pi", "150 * pi"]
+        "answer": "465"
+    },
+    {
+        "statement": "Calculate the side area of a cone with radius 7 and generatrix 3 while considering π = 3. Do not put the units in the answer.",
+        "influence": {
+            "Cylinder": 0.1,
+            "Cone": 0.4,
+            "Basic Math": 0.3
+        },
+        "answer": "63"
     }
 ]

@@ -1,116 +1,72 @@
+#!/usr/bin/env node
+
 import path from "path"
 import fs from "fs/promises"
-import Exam from "./handlers/exam";
-import { Questionnaire } from "./types";
-import { getUserAnswers } from "./handlers/answers";
-//@ts-ignore
-import { terminal as term, TextTable, Element } from "terminal-kit"
-import { Range } from "./types"
+import { Command, Argument } from "commander"
 
-const userbaseData = path.join(__dirname, "example")
-const examPath = path.join(userbaseData, "exam.json")
-const getExamContents = async () =>
-    JSON.parse(await fs.readFile(examPath, "utf8")) as unknown as Questionnaire
+import Exam from "./handlers/exam"
+import { Questionnaire } from "./types"
+import { getUserAnswers } from "./handlers/answers"
+import { generalScores, individualAnswers } from "./utils/table"
+import { terminal as term } from "terminal-kit"
 
-const mainRender = async () => {
-    term.bold.underline.green("Examer v0.0.1\n\n")
-    term("Using ")
-        .underline(
-            path.join(
-                path.parse(process.cwd()).root,
-                path.relative(path.parse(process.cwd()).root, path.join(userbaseData, "users"))
-            )
-        )(" as the answers data and ")
-        .underline(
-            path.join(
-                path.parse(process.cwd()).root,
-                path.relative(path.parse(process.cwd()).root, examPath)
-            )
-        )(" as the exam file\n")
+const program = new Command()
 
-    const answers = await getUserAnswers(path.join(userbaseData, "users"))
-    const exam = new Exam(await getExamContents())
+const getExamContents = async (path: string) =>
+    JSON.parse(await fs.readFile(path, "utf8")) as unknown as Questionnaire
 
-    term("Found ").bold(Object.keys(answers).length)(" answers\n")
+program
+    .name("examer")
+    .description("CLI application for exam evaluation")
+    .version("0.0.1")
 
-    const userScore: {[user: string]: Object} = {}
-    const subjectList: string[] = []
-    for (const username in answers) {
-        term("Calculating from ")(username)("\n")
-        const user = answers[username]
+program
+    .command("general")
+    .description("Get the general scores of the answers")
+    .addArgument(new Argument("<exam>", "Exam file").argRequired())
+    .addArgument(new Argument("<answers>", "Answers folder").argRequired())
+    .action(async (examPath, answersPath, options) => {
+        const answers = await getUserAnswers(answersPath)
+        const exam = new Exam(await getExamContents(examPath))
 
-        let sum: {[subject: string]: {
-            sumOfCorrect: number,
-            sumOfAll: number
-        }} = {}
-
-        for (let i = 0; i < exam.getAllQuestions().length; i++) {
-            const question = exam.getQuestion(i)
-            const answer = user.getAnswer(i)
-
-            const subjects = question.getInfluencedSubjects()
-            for (const subject in subjects) {
-                if (!sum[subject]) {
-                    sum[subject] = {
-                        sumOfCorrect: 0,
-                        sumOfAll: 0
-                    }
-                }
-                if (!subjectList.includes(subject)) subjectList.push(subject)
-                sum[subject].sumOfAll += subjects[subject]
-                if (question.isEqualToAnswer(answer)) {
-                    sum[subject].sumOfCorrect += subjects[subject]
-                }
-            }
-        }
-
-        userScore[username] = sum
-    }
-
-    let averageSubjectScores: {
-        [subject: string]: {
-            sumOfCorrect: number
-            sumOfAll: number
-        }
-    } = {}
-    for (const subject of subjectList) {
-        averageSubjectScores[subject] = {
-            sumOfCorrect: 0,
-            sumOfAll: 0
-        }
-        Object.entries(userScore).forEach(([, score]) => {
-            Object.values(score).forEach(({ sumOfCorrect, sumOfAll }) => {
-                averageSubjectScores[subject].sumOfCorrect += sumOfCorrect
-                averageSubjectScores[subject].sumOfAll += sumOfAll
-            })
-        })
-    }
-
-
-    //@ts-ignore
-    term.table(
-        [
-            ["User", ...subjectList],
-            ...Object.entries(userScore).map(([user, score]) => [
-                user,
-                ...Object.values(score).map(
-                    ({ sumOfCorrect, sumOfAll }) =>
-                        `${((sumOfCorrect / sumOfAll) * 100).toFixed(2)}%`
-                ),
-            ]),
-            // [
-            //     "Average",
-            //     ...Object.entries(averageSubjectScores).map(([name, score]) =>
-            //         Object.values(score).map(  () => `${((score.sumOfCorrect / score.sumOfAll) * 100).toFixed(2)}%`)
-            //     ),
-            // ],
-        ],
-        {
+        //@ts-ignore
+        term.table(generalScores(answers, exam), {
             hasBorder: true,
             borderChars: "lightRounded",
             firstColumnTextAttr: { color: "blue" },
-        }
-    )
-}
+            width: term.width * 0.8,
+        })
+    })
 
-mainRender()
+program
+    .command("individual")
+    .description("Get the individual score of the answer")
+    .addArgument(new Argument("<exam>", "Exam file").argRequired())
+    .addArgument(new Argument("<answer>", "Answer file").argRequired())
+    .action(async (examPath, answerPath, options) => {
+        const answers = await getUserAnswers(path.dirname(answerPath))
+        const exam = new Exam(await getExamContents(examPath))
+        //@ts-ignore
+        term.table(
+            individualAnswers(
+                answers[
+                    path
+                        .parse(answerPath)
+                        .base.slice(
+                            0,
+                            path.parse(answerPath).base.length -
+                                path.extname(answerPath).length
+                        )
+                ],
+                exam
+            ),
+            {
+                hasBorder: true,
+                borderChars: "lightRounded",
+                firstColumnTextAttr: { color: "blue" },
+                width: term.width * 0.8,
+            }
+        )
+    })
+
+program.parse()

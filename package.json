@@ -1,14 +1,25 @@
 {
     "name": "examer",
+    "private": false,
     "version": "1.0.0",
     "description": "",
+    "main": "./.build/index.js",
+    "preferGlobal": true,
+    "sideEffects": false,
     "scripts": {
-        "test": "npx tsc"
+        "build": "npx tsc -p .",
+        "local": "npm i -g && examer",
+        "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+        "pos-install": "npm run build && npm run local"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
+    "bin": {
+        "examer": "./.build/index.js"
+    },
     "dependencies": {
+        "commander": "^9.2.0",
         "terminal-kit": "^2.4.0"
     },
     "devDependencies": {

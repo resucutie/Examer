@@ -12,9 +12,9 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "incremental": true,
-    "rootDir": "./",
-    "outDir": "./.compiled",
+    "outDir": ".build",
+    "rootDir": "./"
   },
   "include": ["*.ts", "index.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".build"]
 }
