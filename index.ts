@@ -9,6 +9,7 @@ import { Questionnaire } from "./types"
 import { getUserAnswers } from "./handlers/answers"
 import { generalScores, individualAnswers } from "./utils/table"
 import { terminal as term } from "terminal-kit"
+import getRelativePath from "./utils/getRelativePath"
 
 const program = new Command()
 
@@ -26,8 +27,8 @@ program
     .addArgument(new Argument("<exam>", "Exam file").argRequired())
     .addArgument(new Argument("<answers>", "Answers folder").argRequired())
     .action(async (examPath, answersPath, options) => {
-        const answers = await getUserAnswers(answersPath)
-        const exam = new Exam(await getExamContents(examPath))
+        const answers = await getUserAnswers(getRelativePath(answersPath))
+        const exam = new Exam(await getExamContents(getRelativePath(examPath)))
 
         //@ts-ignore
         term.table(generalScores(answers, exam), {
@@ -44,18 +45,19 @@ program
     .addArgument(new Argument("<exam>", "Exam file").argRequired())
     .addArgument(new Argument("<answer>", "Answer file").argRequired())
     .action(async (examPath, answerPath, options) => {
-        const answers = await getUserAnswers(path.dirname(answerPath))
-        const exam = new Exam(await getExamContents(examPath))
+        const relativeAnswerPath = getRelativePath(answerPath)
+        const answers = await getUserAnswers(path.dirname(relativeAnswerPath))
+        const exam = new Exam(await getExamContents(getRelativePath(examPath)))
         //@ts-ignore
         term.table(
             individualAnswers(
                 answers[
                     path
-                        .parse(answerPath)
+                        .parse(relativeAnswerPath)
                         .base.slice(
                             0,
-                            path.parse(answerPath).base.length -
-                                path.extname(answerPath).length
+                            path.parse(relativeAnswerPath).base.length -
+                                path.extname(relativeAnswerPath).length
                         )
                 ],
                 exam
