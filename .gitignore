@@ -3,3 +3,4 @@ node_modules
 run.bat
 portable
 /package-lock.json
+/pnpm-lock.yaml
