@@ -1,0 +1,5 @@
+{
+    "ignore": ["node_modules", ".build"],
+    "ext": "ts",
+    "exec": "npx tsc -p "
+}

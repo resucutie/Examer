@@ -2,3 +2,4 @@ node_modules
 .build
 run.bat
 portable
+/package-lock.json
