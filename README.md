@@ -7,6 +7,9 @@ This application was developed as an presentation for the Platinum itinerary of 
 ### Influence calculation
 The advantage of this program is the hability to calculate how much does a person knows for a specific subject. For example, you can give how much knowledge of an subject is required to make a specific question, and then based on that the program will grab that information and give how much the answers know for that subject.
 
+### Visual and exportable table
+You can see how much the answers know of each subject in a nice table and later export it for viewing
+
 ## Installation
 1. Install [Node.js](https://nodejs.org/en/) and [Git](https://git-scm.com/)
 2. Clone the repo
@@ -23,7 +26,12 @@ npm run pos-install
 ```
 
 ## Usage
-### Structure
+### Running it
+```sh
+examer <command> [options]
+```
+### Creating exams and answers
+#### Exams
 First, you need to create a JSON file in a desired folder that should be your exam file. It should look something simmilar to this
 ```json
 // exam.json (do not copy this line)
@@ -68,10 +76,55 @@ First, you need to create a JSON file in a desired folder that should be your ex
     }
 ]
 ```
+The `influence` property is gaven to give the answer the required subjects to answer that question and how much they influence in the making of the question. [Check here for more information](#influence-calculation)
 
-### Running it
-```sh
-examer <command> [options]
+You can give a score to that question. By default it is gaven an score of 1
+```json
+        },
+        "score": 0.5, 
+        "answer": "63"
+```
+And an identifier to it
+```json
+    {
+        "identifier": "3.b",
+        "statement": "Calculate the side area of a cone with radius 7 and generatrix 3 while considering π = 3. Do not put the units in the answer.",
+```
+#### Answers
+
+For the answers, it is recommended to create a folder next to the exam file
+
+The structure of an question look simmilar to this
+```json
+// answers/Pedro Cartaxo.json (do not copy this line)
+[
+    "2^5=32",
+    null,
+    "465",
+    "63"
+]
+```
+Each element represents the answer gaven by the user relative to the exam. So for example, `"2^5=32"` is relative to the first question, while `"465"` for the third
+
+You can expand it by giving an individual score and influences if needed
+```json
+// answers/Pedro Cartaxo.json (do not copy this line)
+[
+    "2^5=32",
+    null,
+    "465",
+    {
+        "value": "59",
+        "override": {
+            "influence": {
+                "Cylinder": 0.1,
+                "Cone": 0.4,
+                "Basic Math": 0.1
+            },
+            "score": 0.3
+        }
+    }
+]
 ```
 
 ## Documentation
