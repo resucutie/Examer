@@ -1,57 +1,34 @@
 // models
 export type SubjectInfluence = {
-    [key: string]: Range<0, 1>
+    [key: string]: number
 }
 
-export type AnswerType = string | boolean | null
+export type AnswerTypes = string | boolean | null
+export interface ExamAnswer {
+    type?: string
+    value: AnswerTypes | AnswerTypes[]
+}
+export interface UserAnswer extends ExamAnswer {
+    value: AnswerTypes
+    override?: {
+        score?: number
+        influence?: SubjectInfluence
+    }
+}
 
-export interface Question {
+export interface QuestionType {
+    identifier?: string
     statement?: string
     influence?: SubjectInfluence
-    answer: AnswerType | AnswerType[]
+    answer: AnswerTypes | AnswerTypes[] | ExamAnswer
+    score?: number
+}
+export interface InternalQuestionType extends QuestionType {
+    answer: ExamAnswer
+}
+export interface ClassQuestionType extends InternalQuestionType {
+    answer: import("./handlers/exam").ExamAnswer
 }
 
-export type Questionnaire = Question[]
-export type Answers = AnswerType[]
-
-// question types
-export type ABCDAnswer =
-    | "A"
-    | "B"
-    | "C"
-    | "D"
-    | "E"
-    | "F"
-    | "G"
-    | "H"
-    | "I"
-    | "J"
-    | "K"
-    | "L"
-    | "M"
-    | "N"
-    | "O"
-    | "P"
-    | "Q"
-    | "R"
-    | "S"
-    | "T"
-    | "U"
-    | "V"
-    | "W"
-    | "X"
-    | "Y"
-    | "Z"
-
-// other
-export type Enumerate<
-    N extends number,
-    Acc extends number[] = []
-> = Acc["length"] extends N
-    ? Acc[number]
-    : Enumerate<N, [...Acc, Acc["length"]]>
-
-export type Range<F extends number, T extends number> = Exclude<
-    Enumerate<T>,
-    Enumerate<F>
->
+export type Exam = QuestionType[]
+export type Answers = AnswerTypes[]

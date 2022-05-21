@@ -2,5 +2,15 @@
     "2^5=32",
     null,
     "30",
-    "63"
+    {
+        "value": "59",
+        "override": {
+            "influence": {
+                "Cylinder": 0.1,
+                "Cone": 0.4,
+                "Basic Math": 0.1
+            },
+            "score": 0.3
+        }
+    }
 ]

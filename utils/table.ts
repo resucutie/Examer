@@ -1,7 +1,7 @@
 import {
     getAllAnswerScores,
     getAllSubjects,
-    getAverageScore,
+    getAverageSubjectScore,
     getIndividualScores,
 } from "../handlers/analyzer"
 import type Exam from "../handlers/exam"
@@ -15,19 +15,39 @@ export function generalScores(answers: { [user: string]: UserAnswer }, exam: Exa
     return [
         [
             "Answer's name",
+            "Score",
             "Percentage of correct answers",
             ...getAllSubjects(exam),
         ],
         ...Object.entries(answers).map(([username, answers]) => [
             username,
-            `${(
+            answers
+                .getAllAnswers()
+                .reduce((acc, answer, index) => {
+                    if (
+                        exam
+                            .getQuestion(index)
+                            .getAnswer()
+                            .isEqualToAnswer(answer.value)
+                    )
+                        acc += exam.getQuestion(index).getScore()
+                    return acc
+                }, 0)
+                .toFixed(2),
+            (
                 (answers.getAllAnswers().reduce((acc, answer, index) => {
-                    if (exam.getQuestion(index).isEqualToAnswer(answer)) acc++
+                    if (
+                        exam
+                            .getQuestion(index)
+                            .getAnswer()
+                            .isEqualToAnswer(answer.value)
+                    )
+                        acc++
                     return acc
                 }, 0) /
                     exam.getAllQuestions().length) *
                 100
-            ).toFixed(2)}%`,
+            ).toFixed(2) + "%",
             ...Object.values(userScores[username]).map(
                 ({ sumOfCorrect, sumOfAll }) =>
                     `${((sumOfCorrect / sumOfAll) * 100).toFixed(2)}%`
@@ -35,21 +55,44 @@ export function generalScores(answers: { [user: string]: UserAnswer }, exam: Exa
         ]),
         [
             "Average",
+            (Object.entries(answers).reduce((acc, [username, response], index) => {
+                response.getAllAnswers().forEach((answer, index) => {
+                    if (
+                        exam
+                            .getQuestion(index)
+                            .getAnswer()
+                            .isEqualToAnswer(answer.value)
+                    ) {
+                        acc += exam.getQuestion(index).getScore()
+                    }
+                })
+                return acc
+            }, 0) / exam.getAllQuestions().length).toFixed(2),
             (
-                (Object.entries(answers).reduce( (acc, [username, response], index) => {
-                    response.getAllAnswers().forEach((answer, index) => {
-                        if (exam.getQuestion(index).isEqualToAnswer(answer)) {
-                            acc++
-                        }
-                    })
-                    return acc
-                }, 0) / (exam.getAllQuestions().length * Object.entries(answers).length)) * 100
+                (Object.entries(answers).reduce(
+                    (acc, [username, response], index) => {
+                        response.getAllAnswers().forEach((answer, index) => {
+                            if (
+                                exam
+                                    .getQuestion(index)
+                                    .getAnswer()
+                                    .isEqualToAnswer(answer.value)
+                            ) {
+                                acc++
+                            }
+                        })
+                        return acc
+                    },
+                    0
+                ) /
+                    (exam.getAllQuestions().length *
+                        Object.entries(answers).length)) *
+                100
             ).toFixed(2) + "%",
             ...getAllSubjects(exam).map(
                 (subject) =>
-                    `${(getAverageScore(userScores, subject) * 100).toFixed(
-                        2
-                    )}%`
+                    (getAverageSubjectScore(userScores, subject) * 100).toFixed(2) +
+                    "%"
             ),
         ],
     ]
@@ -60,43 +103,77 @@ export function individualAnswers(answer: UserAnswer, exam: Exam) {
     const subjects = getAllSubjects(exam)
 
     return [
-        ["Question", "Correct answers", ...subjects],
-        ...exam
-            .getAllQuestions()
-            .map((question, index) => [
-                `${index + 1}. ${limitCharacters(
-                    question.getStatement() ?? "",
-                    Math.floor(term.width * 0.15)
-                )}`,
-                question.isEqualToAnswer(answer.getAnswer(index)) ? "✅" : (
-                    answer.getAnswer(index) == null ? "➖" : "❌"
-                ),
-                ...subjects.map((subject) =>
-                    question.getInfluencedSubjects()?.[subject] &&
-                    question.isEqualToAnswer(answer.getAnswer(index))
-                        ? `${
-                              question.getInfluencedSubjects()?.[subject] ??
-                              0 * 100
-                          }%`
+        ["Question", "Score", "Correct answers", ...subjects],
+        ...exam.getAllQuestions().map((question, index) => [
+            `${question.getidentifier()}. ${limitCharacters(
+                question.getStatement() ?? "",
+                Math.floor(term.width * 0.15)
+            )}`,
+            answer.getAnswer(index).override?.hasOwnProperty("score")
+                ? answer.getAnswer(index).override?.score
+                : question
+                      .getAnswer()
+                      .isEqualToAnswer(answer.getAnswer(index).value)
+                ? question.getScore()
+                : null,
+            question.getAnswer().isEqualToAnswer(answer.getAnswer(index).value)
+                ? "√"
+                : answer.getAnswer(index) == null
+                ? "-"
+                : "X",
+            ...subjects.map((subject) => {
+                if (answer.getAnswer(index).override?.influence?.[subject]) {
+                    return answer.getAnswer(index).override?.influence?.[
+                        subject
+                    ]
+                }
+                if (question.getInfluencedSubjects()?.[subject]) {
+                    return question
+                        .getAnswer()
+                        .isEqualToAnswer(answer.getAnswer(index).value)
+                        ? question.getInfluencedSubjects()?.[subject] ?? 0 * 100
                         : undefined
-                ),
-            ]),
+                }
+            }),
+        ]),
         [
-            "Sum of correct answers",
-            `${(
+            "Average",
+            exam.getAllQuestions().reduce((sum, question, index) => {
+                if (answer.getAnswer(index).override?.hasOwnProperty("score")) {
+                    return sum + Number(answer.getAnswer(index).override?.score)
+                } else if (
+                    question
+                        .getAnswer()
+                        .isEqualToAnswer(answer.getAnswer(index).value)
+                ) {
+                    return sum + question.getScore()
+                }
+                return sum
+            }, 0),
+            (
                 (exam.getAllQuestions().reduce((sum, question, index) => {
-                    if (question.isEqualToAnswer(answer.getAnswer(index))) {
+                    if (
+                        question
+                            .getAnswer()
+                            .isEqualToAnswer(answer.getAnswer(index).value)
+                    ) {
                         return sum + 1
                     }
                     return sum
                 }, 0) /
                     exam.getAllQuestions().length) *
                 100
-            ).toFixed(2)}%`,
-            ...Object.values(userSumScore).map(
-                ({ sumOfCorrect, sumOfAll }) =>
-                    `${((sumOfCorrect / sumOfAll) * 100).toFixed(2)}%`
+            ).toFixed(2) + "%",
+            ...Object.entries(userSumScore).map(
+                ([subject, { sumOfCorrect, sumOfAll }]) => {
+                    return `${((sumOfCorrect / sumOfAll) * 100).toFixed(2)}%`
+                }
             ),
         ],
     ]
+}
+
+export default {
+    generalScores,
+    individualAnswers,
 }
