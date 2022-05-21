@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "commander": "^9.2.0",
+        "exceljs": "^4.3.0",
         "terminal-kit": "^2.4.0"
     },
     "devDependencies": {

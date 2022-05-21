@@ -1,3 +1,6 @@
+import { terminal as term } from "terminal-kit"
+import ExcelJS from "exceljs"
+
 import {
     getAllAnswerScores,
     getAllSubjects,
@@ -7,7 +10,6 @@ import {
 import type Exam from "../handlers/exam"
 import type { UserAnswer } from "../handlers/answers"
 import limitCharacters from "./limitCharacters"
-import { terminal as term } from "terminal-kit"
 
 export function generalScores(answers: { [user: string]: UserAnswer }, exam: Exam) {
     const userScores = getAllAnswerScores(answers, exam)
@@ -173,7 +175,21 @@ export function individualAnswers(answer: UserAnswer, exam: Exam) {
     ]
 }
 
+export function toExcelJS(table: Array<Array<any>>, existingWorksheet?: ExcelJS.Workbook) {
+    const stringifiedTable = table.map((rows) =>
+        rows.map((ceil) => (ceil == null ? "" : ceil))
+    )
+
+    const workbook = existingWorksheet ?? new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet("Table")
+    
+    sheet.addRows(stringifiedTable)
+
+    return workbook
+}
+
 export default {
     generalScores,
     individualAnswers,
+    toExcelJS,
 }

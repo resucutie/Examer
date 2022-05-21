@@ -19,7 +19,6 @@ export const getIndividualScores = (answers: UserAnswer, exam: Exam) => {
             userScore[subject].sumOfAll += subjects[subject]
 
             if (answer.override?.hasOwnProperty?.("influence")) {
-                console.log(answer.override)
                 userScore[subject].sumOfCorrect += Number(answer.override.influence?.[subject])
             } else if (question.getAnswer().isEqualToAnswer(answer.value)) {
                 userScore[subject].sumOfCorrect += subjects[subject]
