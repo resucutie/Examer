@@ -19,8 +19,10 @@ import path from "path"
 
 cli.command("test")
     .description("Test the structure of an exam")
+    .usage("<exam> <answers> [options]")
     .addArgument(new Argument("<exam>", "Exam file").argRequired())
     .addArgument(new Argument("<answers>", "Answer folder").argRequired())
+    .addHelpText("after", "\nExample call:\n  $ examer test \"./exam.json\" \"./answers/\"")
     .action(async (examPath, answersPath, options) => {
         const examRelativePath = getRelativePath(examPath)
         const answersRelativePath = getRelativePath(answersPath)

@@ -1,9 +1,8 @@
 {
     "name": "examer",
     "private": false,
-    "version": "1.0.0",
+    "version": "0.0.2",
     "description": "",
-    "main": "./.build/index.js",
     "preferGlobal": true,
     "sideEffects": false,
     "scripts": {
